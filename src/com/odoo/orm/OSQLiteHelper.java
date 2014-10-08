@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.odoo.base.account.BaseAccount;
 import com.odoo.base.ir.IrAttachment;
 import com.odoo.base.ir.IrModel;
 import com.odoo.base.mail.MailFollowers;
@@ -21,16 +22,17 @@ import com.odoo.util.PreferenceManager;
 public class OSQLiteHelper extends SQLiteOpenHelper {
 	public static final String TAG = OSQLiteHelper.class.getSimpleName();
 
+	public static final int DATABASE_VERSION = 4;
 	public static final String DATABASE_NAME = "OdooSQLite.db";
-	public static final int DATABASE_VERSION = 1;
 	Context mContext = null;
 	OModules mModules = null;
 	List<String> mDBTables = new ArrayList<String>();
 
-	public OSQLiteHelper(Context context) {
-		super(context, DATABASE_NAME, null, DATABASE_VERSION);
+	public OSQLiteHelper(Context context, String dbName) {
+		super(context, dbName, null, DATABASE_VERSION);
 		mContext = context;
 		mModules = new OModules();
+
 	}
 
 	public List<OModel> baseModels() {
@@ -39,6 +41,7 @@ public class OSQLiteHelper extends SQLiteOpenHelper {
 		models.add(new ResPartner(mContext));
 		models.add(new IrAttachment(mContext));
 		models.add(new MailFollowers(mContext));
+		models.add(new BaseAccount(mContext));
 		return models;
 	}
 

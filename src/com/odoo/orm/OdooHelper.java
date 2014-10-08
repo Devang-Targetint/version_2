@@ -3,11 +3,12 @@ package com.odoo.orm;
 import java.util.ArrayList;
 import java.util.List;
 
-import odoo.OEArguments;
-import odoo.OEDomain;
+import odoo.OArguments;
+import odoo.ODomain;
 import odoo.Odoo;
 import odoo.OdooAccountExpireException;
 import odoo.OdooInstance;
+import odoo.OdooVersion;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -40,7 +41,7 @@ public class OdooHelper {
 
 	public OUser login(String username, String password, String database,
 			String serverURL) {
-		Log.d(TAG, "OEHelper->login()");
+		Log.d(TAG, "OHelper->login()");
 		OUser userObj = null;
 		try {
 			mOdoo = new Odoo(serverURL, mForceConnect);
@@ -50,7 +51,7 @@ public class OdooHelper {
 			if (response.get("uid") instanceof Integer) {
 				mApp.setOdooInstance(mOdoo);
 				userId = response.getInt("uid");
-				OEDomain domain = new OEDomain();
+				ODomain domain = new ODomain();
 				domain.add("id", "=", userId);
 				userObj = getUserDetail(domain, database, username, password,
 						serverURL, userId, mForceConnect, null);
@@ -63,7 +64,7 @@ public class OdooHelper {
 
 	public OUser instance_login(OdooInstance instance, String username,
 			String password) throws OdooAccountExpireException {
-		Log.d(TAG, "OEHelper->instance_login()");
+		Log.d(TAG, "OHelper->instance_login()");
 		OUser userObj = null;
 		try {
 			mOdoo = mApp.getOdoo();
@@ -75,7 +76,7 @@ public class OdooHelper {
 			if (response.get("uid") instanceof Integer) {
 				mApp.setOdooInstance(mOdoo);
 				userId = response.getInt("uid");
-				OEDomain domain = new OEDomain();
+				ODomain domain = new ODomain();
 				domain.add("id", "=", userId);
 				userObj = getUserDetail(domain, odooDB, username, password,
 						odooServer, userId, false, instance);
@@ -88,7 +89,7 @@ public class OdooHelper {
 		return userObj;
 	}
 
-	private OUser getUserDetail(OEDomain domain, String database,
+	private OUser getUserDetail(ODomain domain, String database,
 			String username, String password, String url, int userId,
 			boolean mForceConnect, OdooInstance instance)
 			throws OdooAccountExpireException {
@@ -123,6 +124,10 @@ public class OdooHelper {
 				userObj.setInstanceUrl(instance.getInstanceUrl());
 				userObj.setClientId(instance.getClientId());
 			}
+			OdooVersion odooVersion = mApp.getOdooVersion();
+			userObj.setVersion_number(odooVersion.getVersion_number());
+			userObj.setVersion_serie(odooVersion.getServer_serie());
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -133,7 +138,7 @@ public class OdooHelper {
 		List<OdooInstance> list = new ArrayList<OdooInstance>();
 		mOdoo = mApp.getOdoo();
 		try {
-			OEArguments args = new OEArguments();
+			OArguments args = new OArguments();
 			for (OdooInstance instance : mOdoo.get_instances(args.get())) {
 				if (instance.isSaas()) {
 					list.add(instance);

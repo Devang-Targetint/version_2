@@ -24,7 +24,6 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class JSONDataHelper.
  */
@@ -43,7 +42,6 @@ public class JSONDataHelper {
 			try {
 				list.add(array.getString(i));
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -74,13 +72,14 @@ public class JSONDataHelper {
 	 *            the ids
 	 * @return the int[]
 	 */
-	public static int[] jsonArrayTointArray(JSONArray ids) {
-		int newIds[] = new int[ids.length()];
+	public static Integer[] jsonArrayTointArray(JSONArray ids) {
+		Integer newIds[] = new Integer[ids.length()];
 		if (ids != null) {
 			for (int i = 0; i < ids.length(); i++) {
 				try {
 					newIds[i] = ids.getInt(i);
 				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		}
