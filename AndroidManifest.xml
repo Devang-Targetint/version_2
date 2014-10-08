@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.odoo"
-    android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionCode="6"
+    android:versionName="2.0.2alpha" >
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -32,6 +32,7 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:largeHeap="true"
+        android:logo="@drawable/ic_odoo_o"
         android:theme="@style/AppTheme" >
 
         <!-- Android Account Authentication Service -->
@@ -56,13 +57,114 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.odoo.AppSettingsActivity" >
+        <activity
+            android:name="com.odoo.BaseSettings"
+            android:theme="@style/PreferenceTheme" >
             <intent-filter>
-                <action android:name="com.odoo.ACTION_ACCOUNT_CONFIG" />
+                <action android:name="com.odoo.ACTION_ACCOUNT_BASE_CONFIG" />
+
+                <category android:name="android.intent.category.PREFERENCE" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.odoo.GeneralSettings"
+            android:theme="@style/PreferenceTheme" >
+            <intent-filter>
+                <action android:name="com.odoo.ACTION_ACCOUNT_GENERAL_CONFIG" />
 
+                <category android:name="android.intent.category.PREFERENCE" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.odoo.base.about.About"
+            android:theme="@style/PreferenceTheme" >
+            <intent-filter>
+                <action android:name="com.odoo.ACTION_ABOUT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.odoo.addons.mail.ComposeMail"
+            android:icon="@drawable/ic_odoo_o"
+            android:label="@string/title_mail_compose" >
+            <intent-filter
+                android:icon="@drawable/ic_launcher"
+                android:label="@string/label_odoo_mail" >
+                <action android:name="android.intent.action.SENDTO" />
+
+                <data android:scheme="mailto" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter
+                android:icon="@drawable/ic_launcher"
+                android:label="@string/label_odoo_mail" >
+                <action android:name="android.intent.action.SEND" />
+
+                <data android:mimeType="*/*" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter
+                android:icon="@drawable/ic_launcher"
+                android:label="@string/label_odoo_mail" >
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+
+                <data android:mimeType="*/*" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter
+                android:icon="@drawable/ic_launcher"
+                android:label="@string/label_odoo_mail" >
+                <action android:name="android.intent.action.VIEW" />
+
+                <data android:scheme="mailto" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
+        </activity>
+        <!-- Base Providers (Note: update authority as per your app package) -->
+        <provider
+            android:name="com.odoo.base.ir.providers.model.ModelProvider"
+            android:authorities="com.odoo.mail.base.ir.providers.model"
+            android:exported="false"
+            android:multiprocess="true" />
+        <provider
+            android:name="com.odoo.base.res.providers.users.UsersProvider"
+            android:authorities="com.odoo.mail.base.res.providers.users"
+            android:exported="false"
+            android:multiprocess="true" />
+        <provider
+            android:name="com.odoo.base.ir.providers.attachments.AttachmentProvider"
+            android:authorities="com.odoo.mail.base.ir.providers.attachments"
+            android:exported="false"
+            android:multiprocess="true" />
+        <provider
+            android:name="com.odoo.base.res.providers.country.CountryProvider"
+            android:authorities="com.odoo.mail.base.res.providers.country"
+            android:exported="false"
+            android:multiprocess="true" />
+        <provider
+            android:name="com.odoo.base.res.providers.company.CompanyProvider"
+            android:authorities="com.odoo.mail.base.res.providers.company"
+            android:exported="false"
+            android:multiprocess="true" />
+        <provider
+            android:name="com.odoo.base.res.providers.partners.PartnersProvider"
+            android:authorities="com.odoo.mail.base.res.providers.partners"
+            android:exported="false"
+            android:multiprocess="true" />
+        <provider
+            android:name="com.odoo.base.mail.provider.MailFollowerProvider"
+            android:authorities="com.odoo.base.mail.provider.mailfollower"
+            android:exported="false"
+            android:multiprocess="true" />
+
+        <!-- /Base Providers -->
         <!-- Contact service -->
+        <!--
+        FIXME: 
         <service
             android:name="com.odoo.base.res.services.ContactSyncService"
             android:exported="true"
@@ -78,18 +180,19 @@
                 android:name="android.provider.CONTACTS_STRUCTURE"
                 android:resource="@xml/contacts" />
         </service>
-
-        <!-- Idea Library Provider -->
+        -->
+        <!-- Mail Provider -->
         <provider
-            android:name="com.odoo.addons.idea.providers.library.LibraryProvider"
-            android:authorities="com.odoo.addons.idea.providers.library"
+            android:name="com.odoo.addons.mail.providers.mail.MailProvider"
+            android:authorities="com.odoo.addons.mail.providers.mail"
             android:enabled="true"
             android:exported="true"
-            android:label="Library Data"
+            android:label="Messages"
             android:syncable="true" />
-        <!-- Idea Library Provider -->
+
+        <!-- Mail provider service -->
         <service
-            android:name="com.odoo.addons.idea.services.LibraryService"
+            android:name="com.odoo.addons.mail.services.MailSyncService"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
@@ -97,8 +200,58 @@
 
             <meta-data
                 android:name="android.content.SyncAdapter"
-                android:resource="@xml/sync_library_data" />
+                android:resource="@xml/sync_mail" />
         </service>
+        <!-- Mail Group provider -->
+        <provider
+            android:name="com.odoo.addons.mail.providers.group.MailGroupProvider"
+            android:authorities="com.odoo.addons.mail.providers.group"
+            android:enabled="true"
+            android:exported="true"
+            android:label="Groups"
+            android:syncable="true" />
+        <provider
+            android:name="com.odoo.addons.mail.providers.notification.MailNotificationProvider"
+            android:authorities="com.odoo.addons.mail.providers.notification"
+            android:multiprocess="true" />
+        <!-- Mail Group provider service -->
+        <service
+            android:name="com.odoo.addons.mail.services.MailGroupSyncService"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/sync_mailgroup" />
+        </service>
+        <!-- Mail Widget -->
+        <receiver
+            android:name="com.odoo.addons.mail.widgets.MailWidget"
+            android:label="Odoo Messaging" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_mail" />
+        </receiver>
+        <!-- Mail widget remote view service -->
+        <service
+            android:name="com.odoo.addons.mail.widgets.MailRemoteViewService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <!-- Mail widget configuration -->
+        <activity
+            android:name="com.odoo.addons.mail.widgets.MailWidgetConfigure"
+            android:icon="@drawable/ic_odoo_o_purple"
+            android:theme="@style/PreferenceTheme" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

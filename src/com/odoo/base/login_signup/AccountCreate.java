@@ -4,7 +4,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import odoo.OEDomain;
+import odoo.ODomain;
 import odoo.OdooAccountExpireException;
 import odoo.OdooInstance;
 
@@ -22,19 +22,19 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 
 import com.odoo.App;
-import com.odoo.R;
 import com.odoo.auth.OdooAccountManager;
 import com.odoo.base.ir.IrModel;
 import com.odoo.orm.OdooHelper;
-import com.odoo.support.BaseFragment;
-import com.odoo.support.OUser;
 import com.odoo.support.OExceptionDialog;
+import com.odoo.support.OUser;
+import com.odoo.support.fragment.BaseFragment;
 import com.odoo.support.fragment.FragmentListener;
 import com.odoo.support.listview.OListAdapter;
 import com.odoo.util.OControls;
 import com.odoo.util.PreferenceManager;
 import com.odoo.util.controls.ExpandableHeightGridView;
 import com.odoo.util.drawer.DrawerItem;
+import com.odoo.R;
 
 public class AccountCreate extends BaseFragment implements OnItemClickListener {
 
@@ -50,9 +50,10 @@ public class AccountCreate extends BaseFragment implements OnItemClickListener {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		mView = inflater.inflate(R.layout.login_signup_account_create_layout,
-				container, false);
-		getActivity().getActionBar().hide();
+		showActionBar(false);
+		mView = inflater.inflate(
+				R.layout.base_login_signup_account_create_layout, container,
+				false);
 		mApp = (App) getActivity().getApplicationContext();
 		mSelf = this;
 		initArgs();
@@ -62,7 +63,7 @@ public class AccountCreate extends BaseFragment implements OnItemClickListener {
 
 	private void init() {
 		mListAdapter = new OListAdapter(getActivity(),
-				R.layout.login_signup_instance_view, mInstanceList) {
+				R.layout.base_login_signup_instance_view, mInstanceList) {
 			@Override
 			public View getView(int position, View convertView, ViewGroup parent) {
 				View mView = convertView;
@@ -86,7 +87,8 @@ public class AccountCreate extends BaseFragment implements OnItemClickListener {
 	}
 
 	private void initArgs() {
-		if (getArguments().containsKey("no_config_wizard")) {
+		if (getArguments() != null
+				&& getArguments().containsKey("no_config_wizard")) {
 			loadConfigWizard = !getArguments().getBoolean("no_config_wizard");
 		}
 		mUser = new OUser();
@@ -239,7 +241,8 @@ public class AccountCreate extends BaseFragment implements OnItemClickListener {
 		@Override
 		protected Boolean doInBackground(Void... params) {
 			try {
-				OdooHelper odoo = new OdooHelper(getActivity());
+				OdooHelper odoo = new OdooHelper(getActivity(),
+						mUser.isAllowSelfSignedSSL());
 				OUser user = null;
 				if (mSelfHosted) {
 					user = odoo.login(mUser.getUsername(), mUser.getPassword(),
@@ -281,9 +284,11 @@ public class AccountCreate extends BaseFragment implements OnItemClickListener {
 
 	class DatabaseCreate extends AsyncTask<Void, Void, Void> {
 		App mApp = null;
+		IrModel mIRModel = null;
 
 		public DatabaseCreate() {
 			mApp = (App) getActivity().getApplicationContext();
+			mIRModel = new IrModel(getActivity().getApplicationContext());
 		}
 
 		@Override
@@ -294,35 +299,42 @@ public class AccountCreate extends BaseFragment implements OnItemClickListener {
 
 		@Override
 		protected Void doInBackground(Void... params) {
-			IrModel model = new IrModel(getActivity());
-			PreferenceManager pref = new PreferenceManager(getActivity());
-			List<String> model_list = new ArrayList<String>();
-			for (String m : pref.getStringSet("models"))
-				model_list.add(m);
-			try {
-				OEDomain domain = new OEDomain();
-				domain.add("model", "in", new JSONArray(model_list.toString()));
-				model.getSyncHelper().noCheckForWriteDate()
-						.noCheckForCreateDate().syncWithServer(domain);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			getActivity().runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					PreferenceManager pref = new PreferenceManager(
+							getActivity());
+					List<String> model_list = new ArrayList<String>();
+					for (String m : pref.getStringSet("models"))
+						model_list.add(m);
+					try {
+						ODomain domain = new ODomain();
+						domain.add("model", "in",
+								new JSONArray(model_list.toString()));
+						mIRModel.getSyncHelper().syncWithServer(domain);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+				}
+			});
 			return null;
 		}
 
 		@Override
 		protected void onPostExecute(Void result) {
 			super.onPostExecute(result);
-			if (loadConfigWizard) {
-				SyncWizard syncWizard = new SyncWizard();
-				FragmentListener mFragment = (FragmentListener) getActivity();
-				mFragment.startMainFragment(syncWizard, false);
+			if (mIRModel.isEmptyTable()) {
+				DatabaseCreate databaseCreate = new DatabaseCreate();
+				databaseCreate.execute();
 			} else {
-				getActivity().getActionBar().show();
-				getActivity().finish();
-				getActivity().startActivity(getActivity().getIntent());
+				if (loadConfigWizard) {
+					SyncWizard syncWizard = new SyncWizard();
+					FragmentListener mFragment = (FragmentListener) getActivity();
+					mFragment.startMainFragment(syncWizard, false);
+				}
 			}
-
 		}
 
 	}
@@ -350,4 +362,9 @@ public class AccountCreate extends BaseFragment implements OnItemClickListener {
 		account.execute();
 	}
 
+	@Override
+	public void onResume() {
+		super.onResume();
+		getActivity().getActionBar().hide();
+	}
 }

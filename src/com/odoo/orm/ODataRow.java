@@ -98,6 +98,10 @@ public class ODataRow {
 		return list;
 	}
 
+	public boolean contains(String key) {
+		return _data.containsKey(key);
+	}
+
 	@Override
 	public String toString() {
 		return _data.toString();
@@ -131,11 +135,28 @@ public class ODataRow {
 
 	}
 
+	public void addAll(HashMap<String, Object> data) {
+		_data.putAll(data);
+	}
+
+	public void addAll(ODataRow row) {
+		_data.putAll(row.getAll());
+	}
+
+	public HashMap<String, Object> getAll() {
+		return _data;
+	}
+
+	public OValues toValues() {
+		OValues values = new OValues();
+		values.addAll(getAll());
+		return values;
+	}
+
 	public Bundle getPrimaryBundleData() {
 		Bundle bundle = new Bundle();
 		bundle.putInt("id", getInt("id"));
-		bundle.putInt("local_id", getInt("local_id"));
-		bundle.putBoolean("local_record", getBoolean("local_record"));
+		bundle.putInt(OColumn.ROW_ID, getInt(OColumn.ROW_ID));
 		return bundle;
 	}
 
