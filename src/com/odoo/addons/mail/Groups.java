@@ -5,6 +5,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 import android.widgets.SwipeRefreshLayout.OnRefreshListener;
 
 import com.odoo.App;
+import com.odoo.R;
 import com.odoo.addons.mail.models.MailGroup;
 import com.odoo.addons.mail.providers.group.MailGroupProvider;
 import com.odoo.orm.ODataRow;
@@ -34,7 +36,6 @@ import com.odoo.support.listview.OCursorListAdapter.OnRowViewClickListener;
 import com.odoo.support.listview.OCursorListAdapter.OnViewBindListener;
 import com.odoo.util.OControls;
 import com.odoo.util.drawer.DrawerItem;
-import com.odoo.R;
 
 public class Groups extends BaseFragment implements LoaderCallbacks<Cursor>,
 		OnRefreshListener, SyncStatusObserverListener, OnItemClickListener,
@@ -77,12 +78,14 @@ public class Groups extends BaseFragment implements LoaderCallbacks<Cursor>,
 
 	@Override
 	public List<DrawerItem> drawerMenus(Context context) {
+		Resources res = context.getResources();
 		List<DrawerItem> menu = new ArrayList<DrawerItem>();
-		menu.add(new DrawerItem(TAG, "My Groups", true));
-		menu.add(new DrawerItem(TAG, "Groups", 0,
+		menu.add(new DrawerItem(TAG, context
+				.getString(R.string.drawer_group_title), true));
+		menu.add(new DrawerItem(TAG, res.getString(R.string.drawer_group), 0,
 				R.drawable.ic_action_social_group, object("group")));
 		Intent intent = null;
-		String note_package = "com.odoo.note";
+		String note_package = "com.odoo.notes";
 		App app = (App) context.getApplicationContext();
 		if (app.appInstalled(note_package)) {
 			intent = app.getPackageManager().getLaunchIntentForPackage(
@@ -91,9 +94,9 @@ public class Groups extends BaseFragment implements LoaderCallbacks<Cursor>,
 			intent = new Intent(Intent.ACTION_VIEW,
 					Uri.parse("market://details?id=" + note_package));
 		}
-		menu.add(new DrawerItem(TAG, "Notes", true));
-		menu.add(new DrawerItem(TAG, "Notes", 0, R.drawable.ic_action_notes,
-				intent));
+		menu.add(new DrawerItem(TAG, res.getString(R.string.drawer_notes), true));
+		menu.add(new DrawerItem(TAG, res.getString(R.string.drawer_notes), 0,
+				R.drawable.ic_action_notes, intent));
 		return menu;
 	}
 
