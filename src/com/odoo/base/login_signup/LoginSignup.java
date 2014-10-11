@@ -6,11 +6,13 @@ import java.util.List;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 
-import odoo.OEVersionException;
+import odoo.OVersionException;
 import odoo.Odoo;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -30,9 +32,9 @@ import com.odoo.R;
 import com.odoo.auth.OdooAccountManager;
 import com.odoo.orm.OdooHelper;
 import com.odoo.support.AppScope;
-import com.odoo.support.BaseFragment;
 import com.odoo.support.OUser;
 import com.odoo.support.OdooServerConnection;
+import com.odoo.support.fragment.BaseFragment;
 import com.odoo.support.fragment.FragmentListener;
 import com.odoo.util.OControls;
 import com.odoo.util.drawer.DrawerItem;
@@ -52,11 +54,13 @@ public class LoginSignup extends BaseFragment implements OnClickListener,
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		getActivity().getActionBar().hide();
+		showActionBar(false);
 		scope = new AppScope(this);
 		scope.main().lockDrawer(true);
-		mView = inflater
-				.inflate(R.layout.login_signup_layout, container, false);
+		mView = inflater.inflate(R.layout.base_login_signup_layout, container,
+				false);
+		mView.findViewById(R.id.forgot_password).setOnClickListener(this);
+		mView.findViewById(R.id.create_account).setOnClickListener(this);
 		init();
 		return mView;
 	}
@@ -110,6 +114,16 @@ public class LoginSignup extends BaseFragment implements OnClickListener,
 		case R.id.btnLogin:
 			login();
 			break;
+		case R.id.forgot_password:
+			Intent intent = new Intent(Intent.ACTION_VIEW,
+					Uri.parse("https://www.odoo.com/web/reset_password"));
+			startActivity(intent);
+			break;
+		case R.id.create_account:
+			intent = new Intent(Intent.ACTION_VIEW,
+					Uri.parse("https://accounts.odoo.com/web/signup"));
+			startActivity(intent);
+			break;
 		}
 
 	}
@@ -143,8 +157,7 @@ public class LoginSignup extends BaseFragment implements OnClickListener,
 		if (mDBList.size() > 0) {
 			int db_index = (dbListSpinner == null) ? 0 : dbListSpinner
 					.getSelectedItemPosition() - 1;
-			String database_name = mDBList.get(db_index);
-			if (dbListSpinner != null && db_index + 1 == 0) {
+			if (dbListSpinner != null && db_index + 1 <= 0) {
 				Toast.makeText(
 						getActivity(),
 						getResources()
@@ -152,6 +165,7 @@ public class LoginSignup extends BaseFragment implements OnClickListener,
 						Toast.LENGTH_LONG).show();
 				return;
 			}
+			String database_name = mDBList.get(db_index);
 			Bundle bundle = new Bundle();
 			bundle.putString("server_url", mServerURL);
 			bundle.putString("username", edtUsername.getText().toString());
@@ -218,10 +232,20 @@ public class LoginSignup extends BaseFragment implements OnClickListener,
 			super.onPostExecute(success);
 			if (success) {
 				if (OdooAccountManager.fetchAllAccounts(getActivity()) != null) {
-					if (OdooAccountManager.isAnyUser(getActivity())) {
-						OdooAccountManager.logoutUser(getActivity(),
-								OdooAccountManager.currentUser(getActivity())
-										.getAndroidName());
+					if (OdooAccountManager.getAccount(getActivity(),
+							mUser.getAndroidName()) == null) {
+						if (OdooAccountManager.isAnyUser(getActivity())) {
+							OdooAccountManager.logoutUser(
+									getActivity(),
+									OdooAccountManager.currentUser(
+											getActivity()).getAndroidName());
+						}
+					} else {
+						OControls.setGone(mView, R.id.loginProgress);
+						OControls.setVisible(mView, R.id.controls);
+						edtUsername.setError(getResources().getString(
+								R.string.toast_user_already_exists));
+						return;
 					}
 				}
 				app.setOdooInstance(mOdooInstance);
@@ -305,7 +329,7 @@ public class LoginSignup extends BaseFragment implements OnClickListener,
 				flag = false;
 				mSSLError = true;
 				errorMsg = ssl.getMessage();
-			} catch (OEVersionException e) {
+			} catch (OVersionException e) {
 				flag = false;
 				errorMsg = e.getMessage();
 			}
@@ -322,12 +346,20 @@ public class LoginSignup extends BaseFragment implements OnClickListener,
 				mOdooURLTest.cancel(true);
 				mOdooURLTest = null;
 				String[] databases = odooConnect.getDatabases();
-				initDatabaseSpinner(databases);
-				mSSLForceConnect = mForceConnect;
-				if (mAutoLogin) {
-					OControls.setGone(mView, R.id.loginProgress);
-					OControls.setVisible(mView, R.id.controls);
-					login();
+				if (databases.length > 0) {
+					initDatabaseSpinner(databases);
+					mSSLForceConnect = mForceConnect;
+					if (mAutoLogin) {
+						OControls.setGone(mView, R.id.loginProgress);
+						OControls.setVisible(mView, R.id.controls);
+						login();
+					}
+				} else {
+					Toast.makeText(
+							getActivity(),
+							getResources().getString(
+									R.string.toast_no_database_found),
+							Toast.LENGTH_LONG).show();
 				}
 			} else {
 				mOdooURLTest.cancel(true);
@@ -409,5 +441,11 @@ public class LoginSignup extends BaseFragment implements OnClickListener,
 				});
 		builder.setNegativeButton(R.string.label_cancel, null);
 		builder.show();
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		getActivity().getActionBar().hide();
 	}
 }

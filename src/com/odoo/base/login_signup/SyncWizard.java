@@ -27,6 +27,7 @@ import android.content.SharedPreferences.Editor;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -45,8 +46,8 @@ import com.odoo.MainActivity;
 import com.odoo.R;
 import com.odoo.config.SyncWizardValues;
 import com.odoo.support.AppScope;
-import com.odoo.support.BaseFragment;
 import com.odoo.support.SyncValue;
+import com.odoo.support.fragment.BaseFragment;
 import com.odoo.util.drawer.DrawerItem;
 
 public class SyncWizard extends BaseFragment {
@@ -63,14 +64,12 @@ public class SyncWizard extends BaseFragment {
 		setHasOptionsMenu(true);
 		context = (MainActivity) getActivity();
 		scope = new AppScope(this);
-		rootView = inflater.inflate(R.layout.fragment_sync_wizard, container,
-				false);
+		rootView = inflater.inflate(R.layout.base_login_signup_sync_wizard,
+				container, false);
 		getActivity().setTitle(R.string.title_configuration);
 		getActivity().getActionBar().setDisplayHomeAsUpEnabled(false);
 		getActivity().getActionBar().setHomeButtonEnabled(false);
-
 		generateLayout();
-
 		return rootView;
 	}
 
@@ -149,13 +148,6 @@ public class SyncWizard extends BaseFragment {
 		inflater.inflate(R.menu.menu_fragment_sync_wizard, menu);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * android.support.v4.app.Fragment#onOptionsItemSelected(android.view.MenuItem
-	 * )
-	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// handle item selection
@@ -185,8 +177,14 @@ public class SyncWizard extends BaseFragment {
 					}
 				}
 			}
-			getActivity().finish();
-			getActivity().startActivity(getActivity().getIntent());
+			new Handler().postDelayed(new Runnable() {
+
+				@Override
+				public void run() {
+					getActivity().finish();
+					getActivity().startActivity(getActivity().getIntent());
+				}
+			}, 500);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);

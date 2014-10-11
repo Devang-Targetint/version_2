@@ -1,7 +1,5 @@
 package com.odoo.util;
 
-import com.odoo.R;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.view.View;
@@ -9,6 +7,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.odoo.R;
 
 public class OControls {
 
@@ -23,6 +23,13 @@ public class OControls {
 	public static String getText(View parent_view, int textview_id) {
 		TextView textView = (TextView) parent_view.findViewById(textview_id);
 		return textView.getText().toString();
+	}
+
+	public static void toggleViewVisibility(View parent_view, int view_id,
+			Boolean visible) {
+		int view_visibility = (visible) ? View.VISIBLE : View.GONE;
+		parent_view.findViewById(view_id).setVisibility(view_visibility);
+
 	}
 
 	public static void setImage(View parent_view, int imageview_id,

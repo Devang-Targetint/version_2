@@ -16,19 +16,12 @@
     <style name="AppTheme" parent="AppBaseTheme">
 
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
-        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:windowContentOverlay">@drawable/actionbar_bottom_border</item>
         <item name="android:actionBarStyle">@style/CustomActionbar</item>
     </style>
 
     <style name="CustomActionbar" parent="android:style/Widget.Holo.Light.ActionBar">
-        <item name="android:background">#ddebebeb</item>
-    </style>
-
-    <style name="Widget.PullToRefresh.ProgressBar.Horizontal.Center" parent="android:Widget.ProgressBar.Horizontal">
-        <item name="android:progressDrawable">@drawable/ptr_progress_horizontal_holo_center</item>
-        <item name="android:indeterminateDrawable">@drawable/ptr_progress_indeterminate_horizontal_holo</item>
-        <item name="android:minHeight">5dip</item>
-        <item name="android:maxHeight">16dip</item>
+        <item name="android:background">@color/actionbar_bg_color</item>
     </style>
 
 </resources>

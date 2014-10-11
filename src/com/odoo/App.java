@@ -18,10 +18,17 @@
  */
 package com.odoo;
 
+import java.util.List;
+
+import odoo.OVersionException;
 import odoo.Odoo;
 import odoo.OdooInstance;
+import odoo.OdooVersion;
+import android.app.ActivityManager;
 import android.app.Application;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
@@ -32,11 +39,39 @@ public class App extends Application {
 
 	private static final String TAG = App.class.getSimpleName();
 	private static Odoo mOdooInstance = null;
+	private static OUser mUser = null;
+	private static OUser mSyncUser = null;
 
 	@Override
 	public void onCreate() {
 		Log.d(TAG, "App->onCreate()");
 		super.onCreate();
+	}
+
+	public void setSyncUser(OUser user) {
+		mSyncUser = user;
+	}
+
+	public OUser getSyncUser() {
+		return mSyncUser;
+	}
+
+	public void setUser(OUser user) {
+		mUser = user;
+	}
+
+	public OUser getUser() {
+		return mUser;
+	}
+
+	public OdooVersion getOdooVersion() {
+		if (mOdooInstance != null)
+			try {
+				return mOdooInstance.getOdooVersion();
+			} catch (OVersionException e) {
+				e.printStackTrace();
+			}
+		return null;
 	}
 
 	public Odoo createInstance() {
@@ -62,6 +97,8 @@ public class App extends Application {
 				e.printStackTrace();
 			}
 		}
+		setOdooInstance(odoo);
+		setUser(user);
 		return odoo;
 	}
 
@@ -86,5 +123,27 @@ public class App extends Application {
 			isConnected = true;
 		}
 		return isConnected;
+	}
+
+	public boolean appOnTop() {
+		ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+		List<ActivityManager.RunningTaskInfo> taskInfo = am.getRunningTasks(1);
+		ComponentName componentInfo = taskInfo.get(0).topActivity;
+		if (componentInfo.getPackageName().equalsIgnoreCase(getPackageName())) {
+			return true;
+		}
+		return false;
+	}
+
+	public boolean appInstalled(String app_package_name) {
+		PackageManager pm = getPackageManager();
+		boolean app_installed = false;
+		try {
+			pm.getPackageInfo(app_package_name, PackageManager.GET_ACTIVITIES);
+			app_installed = true;
+		} catch (PackageManager.NameNotFoundException e) {
+			app_installed = false;
+		}
+		return app_installed;
 	}
 }

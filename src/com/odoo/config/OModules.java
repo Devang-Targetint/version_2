@@ -18,7 +18,7 @@
  */
 package com.odoo.config;
 
-import com.odoo.addons.idea.Library;
+import com.odoo.addons.partners.PartnersCursorLoader;
 import com.odoo.support.OModule;
 import com.odoo.support.OModulesHelper;
 
@@ -27,6 +27,5 @@ import com.odoo.support.OModulesHelper;
  */
 public class OModules extends OModulesHelper {
 
-	OModule library = new OModule(Library.class).setDefault();
-
+	OModule partners = new OModule(PartnersCursorLoader.class).setDefault();
 }

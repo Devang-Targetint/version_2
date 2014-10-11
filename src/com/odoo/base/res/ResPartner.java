@@ -21,21 +21,31 @@ package com.odoo.base.res;
 
 import android.content.Context;
 
+import com.odoo.addons.partners.model.ResCountryState;
+import com.odoo.addons.partners.model.ResPartnerCategory;
+import com.odoo.base.res.providers.partners.PartnersProvider;
 import com.odoo.orm.OColumn;
 import com.odoo.orm.OColumn.RelationType;
+import com.odoo.orm.ODataRow;
 import com.odoo.orm.OModel;
+import com.odoo.orm.annotations.Odoo;
 import com.odoo.orm.types.OBlob;
+import com.odoo.orm.types.OBoolean;
+import com.odoo.orm.types.ODateTime;
 import com.odoo.orm.types.OText;
 import com.odoo.orm.types.OVarchar;
+import com.odoo.support.provider.OContentProvider;
+import com.odoo.util.ODate;
 
 /**
- * The Class Res_PartnerDBHelper.
+ * The Class ResPartner.
  */
 public class ResPartner extends OModel {
 
 	OColumn name = new OColumn("Name", OText.class);
-	OColumn is_company = new OColumn("Is Company", OText.class);
-	OColumn image_small = new OColumn("Image", OBlob.class);
+	OColumn is_company = new OColumn("Is Company", OBoolean.class)
+			.setDefault(false);
+	OColumn image_small = new OColumn("Image", OBlob.class).setDefault(false);
 	OColumn street = new OColumn("Street", OText.class);
 	OColumn street2 = new OColumn("Street2", OText.class);
 	OColumn city = new OColumn("City", OText.class);
@@ -45,10 +55,42 @@ public class ResPartner extends OModel {
 	OColumn mobile = new OColumn("Mobile", OText.class);
 	OColumn email = new OColumn("Email", OText.class);
 	OColumn company_id = new OColumn("Company", ResCompany.class,
+			RelationType.ManyToOne).addDomain("is_company", "=", true);
+
+	// Extra Demo Module Columns
+	OColumn date = new OColumn("Date", ODateTime.class)
+			.setParsePattern(ODate.DEFAULT_FORMAT);
+
+	@Odoo.hasDomainFilter
+	OColumn state_id = new OColumn("State", ResCountryState.class,
+			RelationType.ManyToOne).addDomain("country_id", "=", this);
+	@Odoo.onChange(method = "onChange_Company_id")
+	OColumn parent_id = new OColumn("Related Company", ResPartner.class,
+			RelationType.ManyToOne).addDomain("is_company", "=", true);
+	OColumn child_ids = new OColumn("Contacts", ResPartner.class,
+			RelationType.OneToMany).setRelatedColumn("parent_id");
+	OColumn comment = new OColumn("Notes", OText.class);
+	OColumn category_id = new OColumn("Tags", ResPartnerCategory.class,
+			RelationType.ManyToMany);
+	OColumn customer = new OColumn("Customer", OBoolean.class);
+	OColumn supplier = new OColumn("Supplier", OBoolean.class);
+	OColumn country_id = new OColumn("Country", ResCountry.class,
 			RelationType.ManyToOne);
 
 	public ResPartner(Context context) {
 		super(context, "res.partner");
 	}
 
+	@Override
+	public OContentProvider getContentProvider() {
+		return new PartnersProvider();
+	}
+
+	public ODataRow onChange_Company_id(ODataRow row) {
+		ODataRow res = new ODataRow();
+		res.put("city", row.getString("city"));
+		res.put("website", row.getString("website"));
+		res.put("country_id", row.getM2ORecord("country_id").getId());
+		return res;
+	}
 }
